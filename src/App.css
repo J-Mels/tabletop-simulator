@@ -12,11 +12,19 @@
   margin-bottom: 20px;
 }
 
-.controls label,
-.controls button {
+.controls label {
   margin: 0 10px;
+  display: inline-flex;
+  align-items: center;
 }
 
-.controls input {
+.controls input[type="file"],
+.controls input[type="text"],
+.controls select {
   margin-left: 5px;
+  margin-right: 10px;
+}
+
+.controls input[type="text"] {
+  width: 100px;
 }
