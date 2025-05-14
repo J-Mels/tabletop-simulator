@@ -1,12 +1,35 @@
 import React, { useState } from "react";
 import { Stage, Layer, Image as KonvaImage } from "react-konva";
 import "./App.css";
+import FolderBrowserModal from "./components/FolderBrowserModal";
 
 function App() {
   const [stageSize] = useState({ width: 800, height: 600 });
   const [boardImage, setBoardImage] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [selectedToken, setSelectedToken] = useState("");
+  const [showBoardModal, setShowBoardModal] = useState(false);
+  const [currentFolder, setCurrentFolder] = useState({
+    name: "Boards",
+    children: [],
+  });
+
+  const mockBoardData = {
+    name: "Boards",
+    children: [
+      {
+        name: "Chess",
+        type: "folder",
+        children: [{ name: "chessboard.png", type: "file" }],
+      },
+      {
+        name: "DnD",
+        type: "folder",
+        children: [{ name: "dungeon_map.jpg", type: "file" }],
+      },
+      { name: "checkers_board.png", type: "file" },
+    ],
+  };
 
   // Handle board file upload
   const handleBoardUpload = (event) => {
@@ -73,7 +96,23 @@ function App() {
 
   return (
     <div className="app">
-      <h1>Tabletop Simulator</h1>
+      <header className="app-header">
+        <div className="app-title">Tabletop Simulator</div>
+        <div className="header-buttons">
+          <button
+            onClick={() => {
+              setCurrentFolder(mockBoardData);
+              setShowBoardModal(true);
+            }}
+          >
+            Choose Board
+          </button>
+
+          <button>Choose Tokens</button>
+          <button>Save Game</button>
+          <button>Load Game</button>
+        </div>
+      </header>
       <div className="controls">
         <label>
           Upload Board:
@@ -141,6 +180,16 @@ function App() {
           ))}
         </Layer>
       </Stage>
+
+      {/* /* -------------------------- Modals --------------------------------------*/}
+      {showBoardModal && (
+        <FolderBrowserModal
+          title="Choose a Board"
+          folderData={currentFolder.children}
+          onClose={() => setShowBoardModal(false)}
+          onSelectFolder={(folder) => setCurrentFolder(folder)}
+        />
+      )}
     </div>
   );
 }
