@@ -1,35 +1,34 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from "react";
+import { useState } from "react";
+import { Stage, Layer, Rect } from "react-konva";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [stageSize] = useState({ width: 800, height: 600 });
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="app">
+      <h1>Tabletop Simulator</h1>
+      <Stage
+        width={stageSize.width}
+        height={stageSize.height}
+        className="canvas"
+      >
+        <Layer>
+          {/* Placeholder map area */}
+          <Rect
+            x={0}
+            y={0}
+            width={stageSize.width}
+            height={stageSize.height}
+            fill="#f0f0f0"
+            stroke="black"
+            strokeWidth={2}
+          />
+        </Layer>
+      </Stage>
+    </div>
+  );
 }
 
-export default App
+export default App;
