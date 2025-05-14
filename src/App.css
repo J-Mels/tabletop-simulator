@@ -7,3 +7,16 @@
   border: 1px solid black;
   display: inline-block;
 }
+
+.controls {
+  margin-bottom: 20px;
+}
+
+.controls label,
+.controls button {
+  margin: 0 10px;
+}
+
+.controls input {
+  margin-left: 5px;
+}
