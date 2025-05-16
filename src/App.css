@@ -1,6 +1,12 @@
+body {
+  margin: 0;
+  overflow-y: scroll; /* Always show vertical scrollbar */
+}
+
 .app {
   text-align: center;
   padding: 20px;
+  position: relative; /* important for absolute children like the delete button */
 }
 
 .app-header {
@@ -21,6 +27,14 @@
 .canvas {
   border: 1px solid black;
   display: inline-block;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  context-menu: none;
 }
 
 .controls {
@@ -49,4 +63,16 @@
   padding: 6px 12px;
   font-size: 1rem;
   cursor: pointer;
+}
+
+.token-delete-button {
+  position: absolute;
+  background-color: red;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1000;
+  white-space: nowrap;
+  font-size: 0.85rem;
 }

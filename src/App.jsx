@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Stage, Layer, Image as KonvaImage } from "react-konva";
 import "./App.css";
+import Konva from "konva";
+import { Rect, Text } from "react-konva";
 
 function App() {
   const [stageSize] = useState({ width: 800, height: 600 });
@@ -162,6 +164,15 @@ function App() {
         width={stageSize.width}
         height={stageSize.height}
         className="canvas"
+        onMouseDown={(e) => {
+          const clickedOnDeleteButton =
+            e.target?.attrs?.text === "Delete" ||
+            e.target?.attrs?.id === "delete-bg";
+
+          if (!clickedOnDeleteButton) {
+            setDeleteTokenId(null);
+          }
+        }}
       >
         <Layer>
           {boardImage ? (
@@ -193,8 +204,47 @@ function App() {
               height={50}
               draggable
               onDragEnd={(e) => handleTokenDrag(e, token.id)}
+              onContextMenu={(e) => {
+                e.evt.preventDefault();
+                e.cancelBubble = true;
+                setDeleteTokenId(token.id);
+              }}
             />
           ))}
+        </Layer>
+        <Layer>
+          {tokens.map((token) =>
+            deleteTokenId === token.id ? (
+              <React.Fragment key={`delete-ui-${token.id}`}>
+                <Rect
+                  id="delete-bg"
+                  x={token.x + 55}
+                  y={token.y}
+                  width={60}
+                  height={30}
+                  fill="red"
+                  cornerRadius={5}
+                  shadowBlur={4}
+                  onClick={() => {
+                    setTokens((prev) => prev.filter((t) => t.id !== token.id));
+                    setDeleteTokenId(null);
+                  }}
+                />
+                <Text
+                  x={token.x + 65}
+                  y={token.y + 7}
+                  text="Delete"
+                  fill="white"
+                  fontSize={14}
+                  fontStyle="bold"
+                  onClick={() => {
+                    setTokens((prev) => prev.filter((t) => t.id !== token.id));
+                    setDeleteTokenId(null);
+                  }}
+                />
+              </React.Fragment>
+            ) : null
+          )}
         </Layer>
       </Stage>
     </div>
