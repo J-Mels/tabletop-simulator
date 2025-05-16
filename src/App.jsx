@@ -1,35 +1,18 @@
 import React, { useState } from "react";
 import { Stage, Layer, Image as KonvaImage } from "react-konva";
 import "./App.css";
-import FolderBrowserModal from "./components/FolderBrowserModal";
 
 function App() {
   const [stageSize] = useState({ width: 800, height: 600 });
   const [boardImage, setBoardImage] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [selectedToken, setSelectedToken] = useState("");
-  const [showBoardModal, setShowBoardModal] = useState(false);
-  const [currentFolder, setCurrentFolder] = useState({
-    name: "Boards",
-    children: [],
-  });
+  const [deleteTokenId, setDeleteTokenId] = useState(null);
 
-  const mockBoardData = {
-    name: "Boards",
-    children: [
-      {
-        name: "Chess",
-        type: "folder",
-        children: [{ name: "chessboard.png", type: "file" }],
-      },
-      {
-        name: "DnD",
-        type: "folder",
-        children: [{ name: "dungeon_map.jpg", type: "file" }],
-      },
-      { name: "checkers_board.png", type: "file" },
-    ],
-  };
+  // const [currentFolder, setCurrentFolder] = useState({
+  //   name: "Boards",
+  //   children: [],
+  // });
 
   // Handle board file upload
   const handleBoardUpload = (event) => {
@@ -100,15 +83,49 @@ function App() {
         <div className="app-title">Tabletop Simulator</div>
         <div className="header-buttons">
           <button
-            onClick={() => {
-              setCurrentFolder(mockBoardData);
-              setShowBoardModal(true);
+            onClick={async () => {
+              const dataUrl = await window.electronAPI.openBoardImage();
+              if (dataUrl) {
+                const img = new window.Image();
+                img.src = dataUrl;
+                img.onload = () => {
+                  setBoardImage(img);
+                };
+              }
             }}
           >
             Choose Board
           </button>
 
-          <button>Choose Tokens</button>
+          <button
+            onClick={async () => {
+              const dataUrls = await window.electronAPI.openTokenImages();
+              if (!dataUrls || dataUrls.length === 0) return;
+
+              const loadedImages = await Promise.all(
+                dataUrls.map(
+                  (dataUrl, index) =>
+                    new Promise((resolve) => {
+                      const img = new window.Image();
+                      img.src = dataUrl;
+                      img.onload = () =>
+                        resolve({
+                          id: Date.now() + index,
+                          name: `Token ${tokens.length + index + 1}`,
+                          image: img,
+                          x: 50 + index * 60, // small gap between tokens
+                          y: 50,
+                        });
+                    })
+                )
+              );
+
+              setTokens((prev) => [...prev, ...loadedImages]);
+            }}
+          >
+            Choose Tokens
+          </button>
+
           <button>Save Game</button>
           <button>Load Game</button>
         </div>
@@ -180,16 +197,6 @@ function App() {
           ))}
         </Layer>
       </Stage>
-
-      {/* /* -------------------------- Modals --------------------------------------*/}
-      {showBoardModal && (
-        <FolderBrowserModal
-          title="Choose a Board"
-          folderData={currentFolder.children}
-          onClose={() => setShowBoardModal(false)}
-          onSelectFolder={(folder) => setCurrentFolder(folder)}
-        />
-      )}
     </div>
   );
 }

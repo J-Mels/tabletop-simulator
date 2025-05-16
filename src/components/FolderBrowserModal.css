@@ -14,9 +14,9 @@
 .modal {
   background: white;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 10px;
   width: 400px;
-  max-height: 500px;
+  max-height: 80vh;
   overflow-y: auto;
 }
 
@@ -31,4 +31,23 @@
 
 .modal li {
   margin: 8px 0;
+}
+
+.folder-tree ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.folder-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.file-entry {
+  display: block;
+  margin-left: 5px;
+  color: #333;
 }
