@@ -270,16 +270,19 @@
 
 // export default App;
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Stage, Layer, Image as KonvaImage } from "react-konva";
 import "./App.css";
 import { Rect, Text } from "react-konva";
 
 function App() {
-  const [stageSize] = useState({ width: 800, height: 600 });
+  // Initialize stageSize with default values
+  const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
   const [boardImage, setBoardImage] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [deleteTokenId, setDeleteTokenId] = useState(null);
+  // Reference to the canvas-container div
+  const containerRef = useRef(null);
 
   const handleTokenDrag = (e, tokenId) => {
     const { x, y } = e.target.position();
@@ -302,6 +305,23 @@ function App() {
                 const img = new window.Image();
                 img.src = dataUrl;
                 img.onload = () => {
+                  // Preserve aspect ratio and fit within 90% of parent container
+                  const maxWidth = containerRef.current.clientWidth * 0.9;
+                  const maxHeight = containerRef.current.clientHeight * 0.9;
+                  let width = img.naturalWidth;
+                  let height = img.naturalHeight;
+
+                  // Scale down if image exceeds container limits
+                  if (width > maxWidth || height > maxHeight) {
+                    const scale = Math.min(
+                      maxWidth / width,
+                      maxHeight / height
+                    );
+                    width = width * scale;
+                    height = height * scale;
+                  }
+
+                  setStageSize({ width, height });
                   setBoardImage(img);
                 };
               }
@@ -346,7 +366,35 @@ function App() {
         </div>
       </header>
 
-      <div className="canvas-container">
+      <div className="canvas-container" ref={containerRef}>
+        <div className="tool-sidebar">
+          <p className="tool">📐</p>
+          <p className="tool">✏️</p>
+          <p className="tool">
+            <svg
+              width="39"
+              height="39"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 4L20 8L8 20L4 16L16 4Z"
+                fill="pink"
+                stroke="white"
+                stroke-width="1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M4 16L8 20"
+                stroke="white"
+                stroke-width="1"
+                stroke-linecap="round"
+              />
+            </svg>
+          </p>
+        </div>
         <Stage
           width={stageSize.width}
           height={stageSize.height}
