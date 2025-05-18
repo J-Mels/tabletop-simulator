@@ -10,6 +10,7 @@ function App() {
   const [boardImage, setBoardImage] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [deleteTokenId, setDeleteTokenId] = useState(null);
+  const [selectedTokenId, setSelectedTokenId] = useState(null);
   // Reference to the canvas-container div
   const containerRef = useRef(null);
 
@@ -147,10 +148,17 @@ function App() {
             const clickedOnDeleteButton =
               e.target?.attrs?.text === "Delete" ||
               e.target?.attrs?.id === "delete-bg";
+            console.log(e.target.getZIndex());
+            const clickedOnToken = e.target.getZIndex() > 0; // Check if target is a KonvaImage
 
             if (!clickedOnDeleteButton) {
               setDeleteTokenId(null);
+              if (!clickedOnToken) setSelectedTokenId(null); // Clear only if not clicking a token
             }
+            // if (!clickedOnDeleteButton && !clickedOnToken) {
+            //   setDeleteTokenId(null);
+            //   setSelectedTokenId(null); // Clear only if not clicking a token
+            // }
           }}
         >
           <Layer>
@@ -199,8 +207,17 @@ function App() {
                   e.evt.preventDefault();
                   e.cancelBubble = true;
                   setDeleteTokenId(token.id);
+                  setSelectedTokenId(token.id);
                 }}
-                onMouseDown={() => bringToFront(token.id)}
+                onMouseDown={() => {
+                  bringToFront(token.id);
+                  setSelectedTokenId(token.id);
+                }}
+                onMouseUp={() => setSelectedTokenId(null)}
+                shadowBlur={selectedTokenId === token.id ? 12 : 0} // Add shadow if selected
+                shadowColor="rgba(255, 0, 0, 0.9)" // Shadow color
+                // shadowOffsetX={selectedTokenId === token.id ? 2 : 0} // Optional offset
+                // shadowOffsetY={selectedTokenId === token.id ? 2 : 0}
               />
             ))}
           </Layer>
