@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
-import { Stage, Layer, Image as KonvaImage } from "react-konva";
+import { Stage, Layer, Image as KonvaImage, Line, Text } from "react-konva";
 import "./App.css";
-import { Rect, Text } from "react-konva";
+import { Rect } from "react-konva";
 
 function App() {
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
@@ -10,6 +10,14 @@ function App() {
   const [deleteTokenId, setDeleteTokenId] = useState(null);
   const [selectedTokenId, setSelectedTokenId] = useState(null);
   const [contextMenuTokenSize, setContextMenuTokenSize] = useState(null);
+  const [rulerMode, setRulerMode] = useState(false); // Track ruler mode
+  const [rulerState, setRulerState] = useState({
+    startX: 0,
+    startY: 0,
+    endX: 0,
+    endY: 0,
+    isDrawing: false,
+  });
   const containerRef = useRef(null);
 
   const handleTokenDrag = (e, tokenId) => {
@@ -34,6 +42,38 @@ function App() {
         token,
       ];
     });
+  };
+
+  const handleRulerMouseDown = (e) => {
+    if (!rulerMode) return;
+    const stage = e.target.getStage();
+    const pointerPos = stage.getPointerPosition();
+    setRulerState({
+      startX: pointerPos.x,
+      startY: pointerPos.y,
+      endX: pointerPos.x,
+      endY: pointerPos.y,
+      isDrawing: true,
+    });
+  };
+
+  const handleRulerMouseMove = (e) => {
+    if (!rulerMode || !rulerState.isDrawing) return;
+    const stage = e.target.getStage();
+    const pointerPos = stage.getPointerPosition();
+    setRulerState((prev) => ({
+      ...prev,
+      endX: pointerPos.x,
+      endY: pointerPos.y,
+    }));
+  };
+
+  const handleRulerMouseUp = () => {
+    if (!rulerMode || !rulerState.isDrawing) return;
+    setRulerState((prev) => ({
+      ...prev,
+      isDrawing: false,
+    }));
   };
 
   return (
@@ -107,7 +147,23 @@ function App() {
 
       <div className="canvas-container" ref={containerRef}>
         <div className="tool-sidebar">
-          <p className="tool">📐</p>
+          <p
+            className={`tool ${rulerMode ? "active" : ""}`}
+            onClick={() => {
+              setRulerMode((prev) => !prev);
+              if (rulerMode) {
+                setRulerState({
+                  startX: 0,
+                  startY: 0,
+                  endX: 0,
+                  endY: 0,
+                  isDrawing: false,
+                });
+              }
+            }}
+          >
+            📐
+          </p>
           <p className="tool">✏️</p>
           <p className="tool">
             <svg
@@ -139,6 +195,10 @@ function App() {
           height={stageSize.height}
           className="canvas"
           onMouseDown={(e) => {
+            if (rulerMode) {
+              handleRulerMouseDown(e);
+              return;
+            }
             const clickedOnDeleteButton =
               e.target?.attrs?.text === "Delete" ||
               e.target?.attrs?.text === "Increase size" ||
@@ -154,6 +214,8 @@ function App() {
               if (!clickedOnToken) setSelectedTokenId(null);
             }
           }}
+          onMouseMove={handleRulerMouseMove}
+          onMouseUp={handleRulerMouseUp}
         >
           <Layer>
             {boardImage ? (
@@ -184,7 +246,7 @@ function App() {
                 width={token.width}
                 height={token.height}
                 cornerRadius={token.width * 0.6}
-                draggable
+                draggable={!rulerMode} // Disable dragging in ruler mode
                 dragBoundFunc={(pos) => {
                   const minX = 0;
                   const minY = 0;
@@ -198,6 +260,7 @@ function App() {
                 }}
                 onDragEnd={(e) => handleTokenDrag(e, token.id)}
                 onContextMenu={(e) => {
+                  if (rulerMode) return; // Disable context menu in ruler mode
                   e.evt.preventDefault();
                   e.cancelBubble = true;
                   setDeleteTokenId(token.id);
@@ -208,10 +271,14 @@ function App() {
                   });
                 }}
                 onMouseDown={() => {
+                  if (rulerMode) return; // Disable token selection in ruler mode
                   bringToFront(token.id);
                   setSelectedTokenId(token.id);
                 }}
-                onMouseUp={() => setSelectedTokenId(null)}
+                onMouseUp={() => {
+                  if (rulerMode) return;
+                  setSelectedTokenId(null);
+                }}
                 shadowBlur={selectedTokenId === token.id ? 12 : 0}
                 shadowColor="rgba(255, 0, 0, 0.9)"
               />
@@ -221,7 +288,6 @@ function App() {
             {tokens.map((token) =>
               deleteTokenId === token.id ? (
                 <React.Fragment key={`context-ui-${token.id}`}>
-                  {/* Delete Button */}
                   <Rect
                     id="delete-bg"
                     x={
@@ -262,7 +328,6 @@ function App() {
                       setContextMenuTokenSize(null);
                     }}
                   />
-                  {/* Increase Size Button */}
                   <Rect
                     id="increase-bg"
                     x={
@@ -282,7 +347,7 @@ function App() {
                             : t
                         )
                       );
-                      setSelectedTokenId(null); // Clear highlight only
+                      setSelectedTokenId(null);
                     }}
                   />
                   <Text
@@ -304,10 +369,9 @@ function App() {
                             : t
                         )
                       );
-                      setSelectedTokenId(null); // Clear highlight only
+                      setSelectedTokenId(null);
                     }}
                   />
-                  {/* Decrease Size Button */}
                   <Rect
                     id="decrease-bg"
                     x={
@@ -331,7 +395,7 @@ function App() {
                             : t
                         )
                       );
-                      setSelectedTokenId(null); // Clear highlight only
+                      setSelectedTokenId(null);
                     }}
                   />
                   <Text
@@ -357,12 +421,45 @@ function App() {
                             : t
                         )
                       );
-                      setSelectedTokenId(null); // Clear highlight only
+                      setSelectedTokenId(null);
                     }}
                   />
                 </React.Fragment>
               ) : null
             )}
+          </Layer>
+          <Layer>
+            {rulerState.isDrawing ||
+            rulerState.endX !== rulerState.startX ||
+            rulerState.endY !== rulerState.startY ? (
+              <>
+                <Line
+                  points={[
+                    rulerState.startX,
+                    rulerState.startY,
+                    rulerState.endX,
+                    rulerState.endY,
+                  ]}
+                  stroke="black"
+                  strokeWidth={2}
+                  dash={[5, 5]}
+                />
+                <Text
+                  x={(rulerState.startX + rulerState.endX) / 2 + 10}
+                  y={(rulerState.startY + rulerState.endY) / 2 - 15}
+                  text={`${Math.floor(
+                    Math.sqrt(
+                      Math.pow(rulerState.endX - rulerState.startX, 2) +
+                        Math.pow(rulerState.endY - rulerState.startY, 2)
+                    ) / 10
+                  )}`}
+                  fontSize={14}
+                  fontStyle="bold"
+                  fill="black"
+                  align="center"
+                />
+              </>
+            ) : null}
           </Layer>
         </Stage>
       </div>

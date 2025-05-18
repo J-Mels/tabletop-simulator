@@ -54,7 +54,15 @@
 }
 
 .tool {
+  width: 50px;
   font-size: 36px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.tool.active {
+  background-color: #ffffff3d;
+  outline: 2px solid black;
 }
 
 .canvas-container {
