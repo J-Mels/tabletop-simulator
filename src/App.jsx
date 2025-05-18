@@ -2,16 +2,14 @@ import React, { useState, useRef } from "react";
 import { Stage, Layer, Image as KonvaImage } from "react-konva";
 import "./App.css";
 import { Rect, Text } from "react-konva";
-import Konva from "konva";
 
 function App() {
-  // Initialize stageSize with default values
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
   const [boardImage, setBoardImage] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [deleteTokenId, setDeleteTokenId] = useState(null);
   const [selectedTokenId, setSelectedTokenId] = useState(null);
-  // Reference to the canvas-container div
+  const [contextMenuTokenSize, setContextMenuTokenSize] = useState(null);
   const containerRef = useRef(null);
 
   const handleTokenDrag = (e, tokenId) => {
@@ -27,13 +25,13 @@ function App() {
     setTokens((prevTokens) => {
       const tokenIndex = prevTokens.findIndex((token) => token.id === tokenId);
       if (tokenIndex === -1 || tokenIndex === prevTokens.length - 1) {
-        return prevTokens; // Token not found or already on top
+        return prevTokens;
       }
       const token = prevTokens[tokenIndex];
       return [
         ...prevTokens.slice(0, tokenIndex),
         ...prevTokens.slice(tokenIndex + 1),
-        token, // Move selected token to the end
+        token,
       ];
     });
   };
@@ -50,13 +48,11 @@ function App() {
                 const img = new window.Image();
                 img.src = dataUrl;
                 img.onload = () => {
-                  // Preserve aspect ratio and fit within 90% of parent container
                   const maxWidth = containerRef.current.clientWidth * 0.9;
                   const maxHeight = containerRef.current.clientHeight * 0.9;
                   let width = img.naturalWidth;
                   let height = img.naturalHeight;
 
-                  // Scale down if image exceeds container limits
                   if (width > maxWidth || height > maxHeight) {
                     const scale = Math.min(
                       maxWidth / width,
@@ -74,7 +70,6 @@ function App() {
           >
             Choose Board
           </button>
-
           <button
             onClick={async () => {
               const dataUrls = await window.electronAPI.openTokenImages();
@@ -105,7 +100,6 @@ function App() {
           >
             Choose Tokens
           </button>
-
           <button>Save Game</button>
           <button>Load Game</button>
         </div>
@@ -127,15 +121,15 @@ function App() {
                 d="M16 4L20 8L8 20L4 16L16 4Z"
                 fill="pink"
                 stroke="white"
-                stroke-width="1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M4 16L8 20"
                 stroke="white"
-                stroke-width="1"
-                stroke-linecap="round"
+                strokeWidth="1"
+                strokeLinecap="round"
               />
             </svg>
           </p>
@@ -147,18 +141,18 @@ function App() {
           onMouseDown={(e) => {
             const clickedOnDeleteButton =
               e.target?.attrs?.text === "Delete" ||
-              e.target?.attrs?.id === "delete-bg";
-            console.log(e.target.getZIndex());
-            const clickedOnToken = e.target.getZIndex() > 0; // Check if target is a KonvaImage
+              e.target?.attrs?.text === "Increase size" ||
+              e.target?.attrs?.text === "Decrease size" ||
+              e.target?.attrs?.id === "delete-bg" ||
+              e.target?.attrs?.id === "increase-bg" ||
+              e.target?.attrs?.id === "decrease-bg";
+            const clickedOnToken = e.target.getZIndex() > 0;
 
             if (!clickedOnDeleteButton) {
               setDeleteTokenId(null);
-              if (!clickedOnToken) setSelectedTokenId(null); // Clear only if not clicking a token
+              setContextMenuTokenSize(null);
+              if (!clickedOnToken) setSelectedTokenId(null);
             }
-            // if (!clickedOnDeleteButton && !clickedOnToken) {
-            //   setDeleteTokenId(null);
-            //   setSelectedTokenId(null); // Clear only if not clicking a token
-            // }
           }}
         >
           <Layer>
@@ -187,15 +181,15 @@ function App() {
                 image={token.image}
                 x={token.x}
                 y={token.y}
-                width={50}
-                height={50}
-                cornerRadius={30}
+                width={token.width}
+                height={token.height}
+                cornerRadius={token.width * 0.6}
                 draggable
                 dragBoundFunc={(pos) => {
                   const minX = 0;
                   const minY = 0;
-                  const maxX = stageSize.width - 50;
-                  const maxY = stageSize.height - 50;
+                  const maxX = stageSize.width - token.width;
+                  const maxY = stageSize.height - token.height;
 
                   return {
                     x: Math.max(minX, Math.min(pos.x, maxX)),
@@ -208,26 +202,31 @@ function App() {
                   e.cancelBubble = true;
                   setDeleteTokenId(token.id);
                   setSelectedTokenId(token.id);
+                  setContextMenuTokenSize({
+                    width: token.width,
+                    height: token.height,
+                  });
                 }}
                 onMouseDown={() => {
                   bringToFront(token.id);
                   setSelectedTokenId(token.id);
                 }}
                 onMouseUp={() => setSelectedTokenId(null)}
-                shadowBlur={selectedTokenId === token.id ? 12 : 0} // Add shadow if selected
-                shadowColor="rgba(255, 0, 0, 0.9)" // Shadow color
-                // shadowOffsetX={selectedTokenId === token.id ? 2 : 0} // Optional offset
-                // shadowOffsetY={selectedTokenId === token.id ? 2 : 0}
+                shadowBlur={selectedTokenId === token.id ? 12 : 0}
+                shadowColor="rgba(255, 0, 0, 0.9)"
               />
             ))}
           </Layer>
           <Layer>
             {tokens.map((token) =>
               deleteTokenId === token.id ? (
-                <React.Fragment key={`delete-ui-${token.id}`}>
+                <React.Fragment key={`context-ui-${token.id}`}>
+                  {/* Delete Button */}
                   <Rect
                     id="delete-bg"
-                    x={token.x + 55}
+                    x={
+                      token.x + (contextMenuTokenSize?.width || token.width) + 5
+                    }
                     y={token.y}
                     width={60}
                     height={30}
@@ -239,10 +238,16 @@ function App() {
                         prev.filter((t) => t.id !== token.id)
                       );
                       setDeleteTokenId(null);
+                      setSelectedTokenId(null);
+                      setContextMenuTokenSize(null);
                     }}
                   />
                   <Text
-                    x={token.x + 65}
+                    x={
+                      token.x +
+                      (contextMenuTokenSize?.width || token.width) +
+                      15
+                    }
                     y={token.y + 7}
                     text="Delete"
                     fill="white"
@@ -253,6 +258,106 @@ function App() {
                         prev.filter((t) => t.id !== token.id)
                       );
                       setDeleteTokenId(null);
+                      setSelectedTokenId(null);
+                      setContextMenuTokenSize(null);
+                    }}
+                  />
+                  {/* Increase Size Button */}
+                  <Rect
+                    id="increase-bg"
+                    x={
+                      token.x + (contextMenuTokenSize?.width || token.width) + 5
+                    }
+                    y={token.y + 35}
+                    width={105}
+                    height={30}
+                    fill="blue"
+                    cornerRadius={5}
+                    shadowBlur={4}
+                    onClick={() => {
+                      setTokens((prev) =>
+                        prev.map((t) =>
+                          t.id === token.id
+                            ? { ...t, width: t.width + 5, height: t.height + 5 }
+                            : t
+                        )
+                      );
+                      setSelectedTokenId(null); // Clear highlight only
+                    }}
+                  />
+                  <Text
+                    x={
+                      token.x +
+                      (contextMenuTokenSize?.width || token.width) +
+                      15
+                    }
+                    y={token.y + 42}
+                    text="Increase size"
+                    fill="white"
+                    fontSize={14}
+                    fontStyle="bold"
+                    onClick={() => {
+                      setTokens((prev) =>
+                        prev.map((t) =>
+                          t.id === token.id
+                            ? { ...t, width: t.width + 5, height: t.height + 5 }
+                            : t
+                        )
+                      );
+                      setSelectedTokenId(null); // Clear highlight only
+                    }}
+                  />
+                  {/* Decrease Size Button */}
+                  <Rect
+                    id="decrease-bg"
+                    x={
+                      token.x + (contextMenuTokenSize?.width || token.width) + 5
+                    }
+                    y={token.y + 70}
+                    width={110}
+                    height={30}
+                    fill="green"
+                    cornerRadius={5}
+                    shadowBlur={4}
+                    onClick={() => {
+                      setTokens((prev) =>
+                        prev.map((t) =>
+                          t.id === token.id
+                            ? {
+                                ...t,
+                                width: Math.max(25, t.width - 5),
+                                height: Math.max(25, t.height - 5),
+                              }
+                            : t
+                        )
+                      );
+                      setSelectedTokenId(null); // Clear highlight only
+                    }}
+                  />
+                  <Text
+                    x={
+                      token.x +
+                      (contextMenuTokenSize?.width || token.width) +
+                      15
+                    }
+                    y={token.y + 77}
+                    text="Decrease size"
+                    fill="white"
+                    fontSize={14}
+                    fontStyle="bold"
+                    onClick={() => {
+                      setTokens((prev) =>
+                        prev.map((t) =>
+                          t.id === token.id
+                            ? {
+                                ...t,
+                                width: Math.max(25, t.width - 5),
+                                height: Math.max(25, t.height - 5),
+                              }
+                            : t
+                        )
+                      );
+                      setSelectedTokenId(null); // Clear highlight only
                     }}
                   />
                 </React.Fragment>
