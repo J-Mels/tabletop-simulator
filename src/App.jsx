@@ -32,7 +32,7 @@ function App() {
   const [showColorDropdown, setShowColorDropdown] = useState(false);
   const [eraseMode, setEraseMode] = useState(false);
   const [isErasing, setIsErasing] = useState(false);
-  const [eraseDropdown, setEraseDropdown] = useState(false); // Track eraser dropdown
+  const [eraseDropdown, setEraseDropdown] = useState(false);
   const containerRef = useRef(null);
 
   const handleTokenDrag = (e, tokenId) => {
@@ -220,6 +220,24 @@ function App() {
 
   const handleClearDrawings = () => {
     setDrawLines([]);
+  };
+
+  const handleDuplicateToken = () => {
+    console.log("function called");
+    const tokenToDuplicate = tokens.find((t) => t.id === deleteTokenId);
+    if (!tokenToDuplicate) return;
+
+    const newToken = {
+      ...tokenToDuplicate,
+      id: Date.now(),
+      x: 50,
+      y: 50,
+    };
+
+    setTokens((prev) => [...prev, newToken]);
+    setDeleteTokenId(null);
+    setSelectedTokenId(null);
+    setContextMenuTokenSize(null);
   };
 
   return (
@@ -445,20 +463,18 @@ function App() {
               handleEraseMouseDown(e);
               return;
             }
-            const clickedOnDeleteButton =
+            const clickedOnContextMenu =
               e.target?.attrs?.text === "Delete" ||
               e.target?.attrs?.text === "Increase size" ||
               e.target?.attrs?.text === "Decrease size" ||
+              e.target?.attrs?.text === "Duplicate" ||
               e.target?.attrs?.id === "delete-bg" ||
               e.target?.attrs?.id === "increase-bg" ||
-              e.target?.attrs?.id === "decrease-bg";
-            if (!clickedOnDeleteButton) {
+              e.target?.attrs?.id === "decrease-bg" ||
+              e.target?.attrs?.id === "duplicate-bg";
+            if (!clickedOnContextMenu) {
               setDeleteTokenId(null);
               setContextMenuTokenSize(null);
-              if (!clickedOnDeleteButton) {
-                setDeleteTokenId(null);
-                setContextMenuTokenSize(null);
-              }
             }
           }}
           onMouseMove={(e) => {
@@ -551,12 +567,23 @@ function App() {
                     height: token.height,
                   });
                 }}
-                onMouseDown={() => {
+                onMouseDown={(e) => {
                   if (rulerMode || drawMode || eraseMode) return;
-                  setDeleteTokenId(null);
-                  setContextMenuTokenSize(null);
-                  bringToFront(token.id);
-                  setSelectedTokenId(token.id);
+                  const clickedOnContextMenu =
+                    e.target?.attrs?.text === "Delete" ||
+                    e.target?.attrs?.text === "Increase size" ||
+                    e.target?.attrs?.text === "Decrease size" ||
+                    e.target?.attrs?.text === "Duplicate" ||
+                    e.target?.attrs?.id === "delete-bg" ||
+                    e.target?.attrs?.id === "increase-bg" ||
+                    e.target?.attrs?.id === "decrease-bg" ||
+                    e.target?.attrs?.id === "duplicate-bg";
+                  if (!clickedOnContextMenu) {
+                    setDeleteTokenId(null);
+                    setContextMenuTokenSize(null);
+                    bringToFront(token.id);
+                    setSelectedTokenId(token.id);
+                  }
                 }}
                 onMouseUp={() => {
                   if (rulerMode || drawMode || eraseMode) return;
@@ -707,6 +734,32 @@ function App() {
                       setSelectedTokenId(null);
                     }}
                   />
+                  <Rect
+                    id="duplicate-bg"
+                    x={
+                      token.x + (contextMenuTokenSize?.width || token.width) + 5
+                    }
+                    y={token.y + 105}
+                    width={90}
+                    height={30}
+                    fill="purple"
+                    cornerRadius={5}
+                    shadowBlur={4}
+                    onClick={handleDuplicateToken}
+                  />
+                  <Text
+                    x={
+                      token.x +
+                      (contextMenuTokenSize?.width || token.width) +
+                      15
+                    }
+                    y={token.y + 112}
+                    text="Duplicate"
+                    fill="white"
+                    fontSize={14}
+                    fontStyle="bold"
+                    onClick={handleDuplicateToken}
+                  />
                 </React.Fragment>
               ) : null
             )}
@@ -747,7 +800,7 @@ function App() {
           <Layer>
             {eraseMode && isErasing && (
               <Circle
-                x={pointToSegmentDistance.lastPointerX || 0} // Use last known mouse position
+                x={pointToSegmentDistance.lastPointerX || 0}
                 y={pointToSegmentDistance.lastPointerY || 0}
                 radius={10}
                 fill="rgba(255, 0, 0, 0.3)"
