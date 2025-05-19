@@ -453,7 +453,10 @@ function App() {
             if (!clickedOnDeleteButton) {
               setDeleteTokenId(null);
               setContextMenuTokenSize(null);
-              if (!clickedOnToken) setSelectedTokenId(null);
+              if (!clickedOnDeleteButton) {
+                setDeleteTokenId(null);
+                setContextMenuTokenSize(null);
+              }
             }
           }}
           onMouseMove={(e) => {
@@ -548,8 +551,11 @@ function App() {
                 }}
                 onMouseDown={() => {
                   if (rulerMode || drawMode || eraseMode) return;
+                  setDeleteTokenId(null);
+                  setContextMenuTokenSize(null);
                   bringToFront(token.id);
                   setSelectedTokenId(token.id);
+                  // console.log(token.getZIndex());
                 }}
                 onMouseUp={() => {
                   if (rulerMode || drawMode || eraseMode) return;
