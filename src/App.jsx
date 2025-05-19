@@ -6,9 +6,9 @@ import {
   Line,
   Text,
   Circle,
+  Rect,
 } from "react-konva";
 import "./App.css";
-import { Rect } from "react-konva";
 
 function App() {
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
@@ -288,6 +288,7 @@ function App() {
           </button>
           <button>Save Game</button>
           <button>Load Game</button>
+          <button>Reset Board</button>
         </div>
       </header>
 
@@ -295,6 +296,7 @@ function App() {
         <div className="tool-sidebar">
           <div
             className={`tool ${rulerMode ? "active" : ""}`}
+            id="ruler"
             onClick={() => {
               setRulerMode((prev) => !prev);
               setDrawMode(false);
@@ -317,6 +319,7 @@ function App() {
           <div className="tool-container">
             <div
               className={`tool ${drawMode ? "active" : ""}`}
+              id="draw"
               onClick={() => {
                 setDrawMode((prev) => {
                   const newDrawMode = !prev;
@@ -382,6 +385,7 @@ function App() {
           <div className="tool-container">
             <div
               className={`tool ${eraseMode ? "active" : ""}`}
+              id="erase"
               onClick={() => {
                 setEraseMode((prev) => !prev);
                 setRulerMode(false);
@@ -448,8 +452,6 @@ function App() {
               e.target?.attrs?.id === "delete-bg" ||
               e.target?.attrs?.id === "increase-bg" ||
               e.target?.attrs?.id === "decrease-bg";
-            const clickedOnToken = e.target.getZIndex() > 0;
-
             if (!clickedOnDeleteButton) {
               setDeleteTokenId(null);
               setContextMenuTokenSize(null);
@@ -555,7 +557,6 @@ function App() {
                   setContextMenuTokenSize(null);
                   bringToFront(token.id);
                   setSelectedTokenId(token.id);
-                  // console.log(token.getZIndex());
                 }}
                 onMouseUp={() => {
                   if (rulerMode || drawMode || eraseMode) return;

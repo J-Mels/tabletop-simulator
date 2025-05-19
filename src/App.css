@@ -71,12 +71,38 @@
   justify-content: center;
   margin: 25px 0;
   transition: background-color 0.2s;
+  position: relative;
+  z-index: 99;
 }
 
 .tool.active {
   background-color: #ffffff3d;
   outline: 2px solid black;
   border-radius: 5px;
+}
+
+.tool:hover::after {
+  position: absolute;
+  bottom: 30px;
+  left: 25px;
+  font-size: 12px;
+  background-color: #f8f4b8;
+  color: black;
+  padding: 0 5px;
+  border: 1px solid black;
+  transition: all 0.2s;
+}
+
+#ruler:hover::after {
+  content: "Ruler";
+}
+
+#draw:hover::after {
+  content: "Draw";
+}
+
+#erase:hover::after {
+  content: "Erase";
 }
 
 .color-dropdown {
