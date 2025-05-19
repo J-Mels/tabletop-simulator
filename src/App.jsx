@@ -1,5 +1,12 @@
 import React, { useState, useRef } from "react";
-import { Stage, Layer, Image as KonvaImage, Line, Text } from "react-konva";
+import {
+  Stage,
+  Layer,
+  Image as KonvaImage,
+  Line,
+  Text,
+  Circle,
+} from "react-konva";
 import "./App.css";
 import { Rect } from "react-konva";
 
@@ -10,7 +17,7 @@ function App() {
   const [deleteTokenId, setDeleteTokenId] = useState(null);
   const [selectedTokenId, setSelectedTokenId] = useState(null);
   const [contextMenuTokenSize, setContextMenuTokenSize] = useState(null);
-  const [rulerMode, setRulerMode] = useState(false); // Track ruler mode
+  const [rulerMode, setRulerMode] = useState(false);
   const [rulerState, setRulerState] = useState({
     startX: 0,
     startY: 0,
@@ -18,6 +25,14 @@ function App() {
     endY: 0,
     isDrawing: false,
   });
+  const [drawMode, setDrawMode] = useState(false);
+  const [drawColor, setDrawColor] = useState("black");
+  const [drawLines, setDrawLines] = useState([]);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [showColorDropdown, setShowColorDropdown] = useState(false);
+  const [eraseMode, setEraseMode] = useState(false);
+  const [isErasing, setIsErasing] = useState(false);
+  const [eraseDropdown, setEraseDropdown] = useState(false); // Track eraser dropdown
   const containerRef = useRef(null);
 
   const handleTokenDrag = (e, tokenId) => {
@@ -74,6 +89,137 @@ function App() {
       ...prev,
       isDrawing: false,
     }));
+  };
+
+  const handleDrawMouseDown = (e) => {
+    if (!drawMode) return;
+    const stage = e.target.getStage();
+    const pointerPos = stage.getPointerPosition();
+    setIsDrawing(true);
+    setDrawLines((prev) => [
+      ...prev,
+      { points: [pointerPos.x, pointerPos.y], color: drawColor },
+    ]);
+  };
+
+  const handleDrawMouseMove = (e) => {
+    if (!drawMode || !isDrawing) return;
+    const stage = e.target.getStage();
+    const pointerPos = stage.getPointerPosition();
+    setDrawLines((prev) => {
+      const newLines = [...prev];
+      const currentLine = newLines[newLines.length - 1];
+      currentLine.points = [...currentLine.points, pointerPos.x, pointerPos.y];
+      return newLines;
+    });
+  };
+
+  const handleDrawMouseUp = () => {
+    if (!drawMode || !isDrawing) return;
+    setIsDrawing(false);
+  };
+
+  const handleEraseMouseDown = (e) => {
+    if (!eraseMode) return;
+    setIsErasing(true);
+    handleErase(e);
+  };
+
+  const handleEraseMouseMove = (e) => {
+    if (!eraseMode || !isErasing) return;
+    handleErase(e);
+  };
+
+  const handleEraseMouseUp = () => {
+    if (!eraseMode || !isErasing) return;
+    setIsErasing(false);
+  };
+
+  const pointToSegmentDistance = (px, py, x1, y1, x2, y2) => {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lengthSquared = dx * dx + dy * dy;
+
+    if (lengthSquared === 0) {
+      return Math.sqrt(Math.pow(px - x1, 2) + Math.pow(py - y1, 2));
+    }
+
+    let t = ((px - x1) * dx + (py - y1) * dy) / lengthSquared;
+    t = Math.max(0, Math.min(1, t));
+    const projectionX = x1 + t * dx;
+    const projectionY = y1 + t * dy;
+
+    return Math.sqrt(
+      Math.pow(px - projectionX, 2) + Math.pow(py - projectionY, 2)
+    );
+  };
+
+  const handleErase = (e) => {
+    const stage = e.target.getStage();
+    const pointerPos = stage.getPointerPosition();
+    const eraseRadius = 10;
+
+    setDrawLines((prevLines) => {
+      let newLines = [];
+      prevLines.forEach((line) => {
+        let currentSegment = [];
+        let keepPoints = [];
+        let segmentsToAdd = [];
+        let i = 0;
+
+        while (i < line.points.length) {
+          const x = line.points[i];
+          const y = line.points[i + 1];
+          currentSegment.push(x, y);
+          i += 2;
+
+          if (currentSegment.length >= 4) {
+            const x1 = currentSegment[currentSegment.length - 4];
+            const y1 = currentSegment[currentSegment.length - 3];
+            const x2 = currentSegment[currentSegment.length - 2];
+            const y2 = currentSegment[currentSegment.length - 1];
+
+            const distance = pointToSegmentDistance(
+              pointerPos.x,
+              pointerPos.y,
+              x1,
+              y1,
+              x2,
+              y2
+            );
+
+            if (distance <= eraseRadius) {
+              if (keepPoints.length >= 2) {
+                segmentsToAdd.push({
+                  points: [...keepPoints],
+                  color: line.color,
+                });
+              }
+              keepPoints = [x2, y2];
+            } else {
+              keepPoints.push(x, y);
+            }
+          } else {
+            keepPoints.push(x, y);
+          }
+        }
+
+        if (keepPoints.length >= 4) {
+          segmentsToAdd.push({
+            points: [...keepPoints],
+            color: line.color,
+          });
+        }
+
+        newLines.push(...segmentsToAdd);
+      });
+
+      return newLines;
+    });
+  };
+
+  const handleClearDrawings = () => {
+    setDrawLines([]);
   };
 
   return (
@@ -147,10 +293,14 @@ function App() {
 
       <div className="canvas-container" ref={containerRef}>
         <div className="tool-sidebar">
-          <p
+          <div
             className={`tool ${rulerMode ? "active" : ""}`}
             onClick={() => {
               setRulerMode((prev) => !prev);
+              setDrawMode(false);
+              setShowColorDropdown(false);
+              setEraseMode(false);
+              setEraseDropdown(false);
               if (rulerMode) {
                 setRulerState({
                   startX: 0,
@@ -163,32 +313,116 @@ function App() {
             }}
           >
             📐
-          </p>
-          <p className="tool">✏️</p>
-          <p className="tool">
-            <svg
-              width="39"
-              height="39"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          </div>
+          <div className="tool-container">
+            <div
+              className={`tool ${drawMode ? "active" : ""}`}
+              onClick={() => {
+                setDrawMode((prev) => {
+                  const newDrawMode = !prev;
+                  setShowColorDropdown(newDrawMode);
+                  setRulerMode(false);
+                  setEraseMode(false);
+                  setEraseDropdown(false);
+                  setRulerState({
+                    startX: 0,
+                    startY: 0,
+                    endX: 0,
+                    endY: 0,
+                    isDrawing: false,
+                  });
+                  if (!newDrawMode) {
+                    setIsDrawing(false);
+                  }
+                  return newDrawMode;
+                });
+              }}
             >
-              <path
-                d="M16 4L20 8L8 20L4 16L16 4Z"
-                fill="pink"
-                stroke="white"
-                strokeWidth="1"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M4 16L8 20"
-                stroke="white"
-                strokeWidth="1"
-                strokeLinecap="round"
-              />
-            </svg>
-          </p>
+              ✏️
+            </div>
+            {showColorDropdown && (
+              <div className="color-dropdown">
+                <svg
+                  width="20"
+                  height="20"
+                  onClick={() => {
+                    setDrawColor("black");
+                  }}
+                >
+                  <circle cx="10" cy="10" r="5" fill="black" />
+                </svg>
+                <svg
+                  width="20"
+                  height="20"
+                  onClick={() => {
+                    setDrawColor("white");
+                  }}
+                >
+                  <circle
+                    cx="10"
+                    cy="10"
+                    r="5"
+                    fill="white"
+                    stroke="black"
+                    strokeWidth="1"
+                  />
+                </svg>
+                <svg
+                  width="20"
+                  height="20"
+                  onClick={() => {
+                    setDrawColor("red");
+                  }}
+                >
+                  <circle cx="10" cy="10" r="5" fill="red" />
+                </svg>
+              </div>
+            )}
+          </div>
+          <div className="tool-container">
+            <div
+              className={`tool ${eraseMode ? "active" : ""}`}
+              onClick={() => {
+                setEraseMode((prev) => !prev);
+                setRulerMode(false);
+                setDrawMode(false);
+                setShowColorDropdown(false);
+                setEraseDropdown(eraseMode ? false : true);
+                setRulerState({
+                  startX: 0,
+                  startY: 0,
+                  endX: 0,
+                  endY: 0,
+                  isDrawing: false,
+                });
+                setIsDrawing(false);
+              }}
+            >
+              <svg
+                width="42"
+                height="42"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 11H19A3 3 0 0122 14V16A3 3 0 0119 19H5A3 3 0 012 16V14A3 3 0 015 11Z"
+                  fill="#ff85a2"
+                  stroke="white"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            {eraseDropdown && (
+              <div className="erase-dropdown">
+                <span onClick={handleClearDrawings} style={{ margin: 0 }}>
+                  Clear
+                </span>
+              </div>
+            )}
+          </div>
         </div>
         <Stage
           width={stageSize.width}
@@ -197,6 +431,14 @@ function App() {
           onMouseDown={(e) => {
             if (rulerMode) {
               handleRulerMouseDown(e);
+              return;
+            }
+            if (drawMode) {
+              handleDrawMouseDown(e);
+              return;
+            }
+            if (eraseMode) {
+              handleEraseMouseDown(e);
               return;
             }
             const clickedOnDeleteButton =
@@ -214,8 +456,28 @@ function App() {
               if (!clickedOnToken) setSelectedTokenId(null);
             }
           }}
-          onMouseMove={handleRulerMouseMove}
-          onMouseUp={handleRulerMouseUp}
+          onMouseMove={(e) => {
+            if (rulerMode) {
+              handleRulerMouseMove(e);
+            }
+            if (drawMode) {
+              handleDrawMouseMove(e);
+            }
+            if (eraseMode) {
+              handleEraseMouseMove(e);
+            }
+          }}
+          onMouseUp={(e) => {
+            if (rulerMode) {
+              handleRulerMouseUp(e);
+            }
+            if (drawMode) {
+              handleDrawMouseUp(e);
+            }
+            if (eraseMode) {
+              handleEraseMouseUp(e);
+            }
+          }}
         >
           <Layer>
             {boardImage ? (
@@ -237,6 +499,20 @@ function App() {
                 strokeWidth={2}
               />
             )}
+          </Layer>
+          <Layer>
+            {drawLines.map((line, index) => (
+              <Line
+                key={index}
+                points={line.points}
+                stroke={line.color}
+                strokeWidth={2}
+                lineCap="round"
+                lineJoin="round"
+              />
+            ))}
+          </Layer>
+          <Layer>
             {tokens.map((token) => (
               <KonvaImage
                 key={token.id}
@@ -246,7 +522,7 @@ function App() {
                 width={token.width}
                 height={token.height}
                 cornerRadius={token.width * 0.6}
-                draggable={!rulerMode} // Disable dragging in ruler mode
+                draggable={!rulerMode && !drawMode && !eraseMode}
                 dragBoundFunc={(pos) => {
                   const minX = 0;
                   const minY = 0;
@@ -260,7 +536,7 @@ function App() {
                 }}
                 onDragEnd={(e) => handleTokenDrag(e, token.id)}
                 onContextMenu={(e) => {
-                  if (rulerMode) return; // Disable context menu in ruler mode
+                  if (rulerMode || drawMode || eraseMode) return;
                   e.evt.preventDefault();
                   e.cancelBubble = true;
                   setDeleteTokenId(token.id);
@@ -271,12 +547,12 @@ function App() {
                   });
                 }}
                 onMouseDown={() => {
-                  if (rulerMode) return; // Disable token selection in ruler mode
+                  if (rulerMode || drawMode || eraseMode) return;
                   bringToFront(token.id);
                   setSelectedTokenId(token.id);
                 }}
                 onMouseUp={() => {
-                  if (rulerMode) return;
+                  if (rulerMode || drawMode || eraseMode) return;
                   setSelectedTokenId(null);
                 }}
                 shadowBlur={selectedTokenId === token.id ? 12 : 0}
@@ -460,6 +736,18 @@ function App() {
                 />
               </>
             ) : null}
+          </Layer>
+          <Layer>
+            {eraseMode && isErasing && (
+              <Circle
+                x={pointToSegmentDistance.lastPointerX || 0} // Use last known mouse position
+                y={pointToSegmentDistance.lastPointerY || 0}
+                radius={10}
+                fill="rgba(255, 0, 0, 0.3)"
+                stroke="red"
+                strokeWidth={1}
+              />
+            )}
           </Layer>
         </Stage>
       </div>

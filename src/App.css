@@ -44,25 +44,76 @@
 
 .tool-sidebar {
   position: absolute;
-  /* border: 3px solid black; */
-  /* background-color: rgb(48, 40, 30); */
   height: 200px;
   width: 50px;
   margin-right: 25px;
   right: 0;
   top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 0;
+}
+
+.tool-container {
+  position: relative;
 }
 
 .tool {
   width: 50px;
+  height: 50px;
   font-size: 36px;
   cursor: pointer;
+  display: flex;
   box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  margin: 25px 0;
+  transition: background-color 0.2s;
 }
 
 .tool.active {
   background-color: #ffffff3d;
   outline: 2px solid black;
+  border-radius: 5px;
+}
+
+.color-dropdown {
+  position: absolute;
+  top: 80px; /* Below pencil icon */
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  display: flex;
+  gap: 10px;
+  z-index: 10; /* Above canvas */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.color-dropdown svg {
+  cursor: pointer;
+}
+
+.erase-dropdown {
+  position: absolute;
+  color: #464646;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  top: 80px;
+  width: 48px;
+  height: 25px;
+  font-size: 14px;
+  cursor: pointer;
+  /* margin-top: 5px;
+  margin-left: -5px; Adjust to align with eraser tool */
 }
 
 .canvas-container {
