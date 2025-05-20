@@ -7,6 +7,7 @@ import {
   Text,
   Circle,
   Rect,
+  Group,
 } from "react-konva";
 import "./App.css";
 
@@ -57,6 +58,47 @@ function App() {
         token,
       ];
     });
+  };
+
+  // const assignTokenLabels = (tokens, newTokens = []) => {0
+  const assignTokenLabels = (tokens = []) => {
+    const tokenGroups = {};
+    tokens.forEach((token) => {
+      const imageSrc = token.image.src;
+      if (!tokenGroups[imageSrc]) {
+        tokenGroups[imageSrc] = [];
+      }
+      tokenGroups[imageSrc].push(token);
+    });
+
+    const updatedTokens = [...tokens];
+    Object.values(tokenGroups).forEach((group) => {
+      if (group.length > 1) {
+        // Sort tokens by id for consistent labeling
+        group.sort((a, b) => a.id - b.id);
+
+        // Calculate the highest existing label in the group
+        const existingLabels = group.map((token) => parseInt(token.label) || 0);
+        const validLabels = existingLabels.filter(
+          (label) => !isNaN(label) && label > 0
+        );
+        const maxLabel = validLabels.length > 0 ? Math.max(...validLabels) : 0;
+
+        // Assign sequential labels starting from 1 based on sorted order
+        group.forEach((token, index) => {
+          const tokenIndex = updatedTokens.findIndex((t) => t.id === token.id);
+          const newLabel = (index + 1).toString();
+          updatedTokens[tokenIndex] = { ...token, label: newLabel };
+        });
+      } else {
+        // Single token with this image gets no label
+        const token = group[0];
+        const tokenIndex = updatedTokens.findIndex((t) => t.id === token.id);
+        updatedTokens[tokenIndex] = { ...token, label: "" };
+      }
+    });
+
+    return updatedTokens;
   };
 
   const handleRulerMouseDown = (e) => {
@@ -223,7 +265,6 @@ function App() {
   };
 
   const handleDuplicateToken = () => {
-    console.log("function called");
     const tokenToDuplicate = tokens.find((t) => t.id === deleteTokenId);
     if (!tokenToDuplicate) return;
 
@@ -234,7 +275,10 @@ function App() {
       y: 50,
     };
 
-    setTokens((prev) => [...prev, newToken]);
+    setTokens((prev) => {
+      const updatedTokens = [...prev, newToken];
+      return assignTokenLabels(updatedTokens, [newToken]);
+    });
     setDeleteTokenId(null);
     setSelectedTokenId(null);
     setContextMenuTokenSize(null);
@@ -294,12 +338,16 @@ function App() {
                           y: 50,
                           width: 50,
                           height: 50,
+                          label: "",
                         });
                     })
                 )
               );
 
-              setTokens((prev) => [...prev, ...loadedImages]);
+              setTokens((prev) => {
+                const updatedTokens = [...prev, ...loadedImages];
+                return assignTokenLabels(updatedTokens, loadedImages);
+              });
             }}
           >
             Choose Tokens
@@ -535,14 +583,10 @@ function App() {
           </Layer>
           <Layer>
             {tokens.map((token) => (
-              <KonvaImage
+              <Group
                 key={token.id}
-                image={token.image}
                 x={token.x}
                 y={token.y}
-                width={token.width}
-                height={token.height}
-                cornerRadius={token.width * 0.6}
                 draggable={!rulerMode && !drawMode && !eraseMode}
                 dragBoundFunc={(pos) => {
                   const minX = 0;
@@ -555,7 +599,16 @@ function App() {
                     y: Math.max(minY, Math.min(pos.y, maxY)),
                   };
                 }}
-                onDragEnd={(e) => handleTokenDrag(e, token.id)}
+                onDragStart={() => {
+                  if (rulerMode || drawMode || eraseMode) return;
+                  bringToFront(token.id);
+                  setSelectedTokenId(token.id);
+                }}
+                onDragEnd={(e) => {
+                  if (rulerMode || drawMode || eraseMode) return;
+                  handleTokenDrag(e, token.id);
+                  setSelectedTokenId(null);
+                }}
                 onContextMenu={(e) => {
                   if (rulerMode || drawMode || eraseMode) return;
                   e.evt.preventDefault();
@@ -589,9 +642,36 @@ function App() {
                   if (rulerMode || drawMode || eraseMode) return;
                   setSelectedTokenId(null);
                 }}
-                shadowBlur={selectedTokenId === token.id ? 12 : 0}
-                shadowColor="rgba(255, 0, 0, 0.9)"
-              />
+              >
+                <KonvaImage
+                  image={token.image}
+                  x={0}
+                  y={0}
+                  width={token.width}
+                  height={token.height}
+                  cornerRadius={token.width * 0.6}
+                  shadowBlur={selectedTokenId === token.id ? 12 : 0}
+                  shadowColor="rgba(255, 0, 0, 0.9)"
+                />
+                {token.label && (
+                  <Text
+                    x={token.width / 2}
+                    y={token.height / 2}
+                    text={token.label}
+                    fontSize={20}
+                    fontStyle="bold"
+                    fill="white"
+                    align="center"
+                    verticalAlign="middle"
+                    offsetX={token.label.length * 5}
+                    offsetY={10}
+                    shadowColor="black"
+                    shadowBlur={2}
+                    shadowOffsetX={1}
+                    shadowOffsetY={1}
+                  />
+                )}
+              </Group>
             ))}
           </Layer>
           <Layer>
