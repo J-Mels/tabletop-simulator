@@ -2,6 +2,8 @@
 
 A lightweight, desktop-based tabletop simulator built with Electron and React, designed to bring the tabletop gaming experience to your computer. This app allows users to load custom board images, place and manipulate tokens, draw on the board, measure distances with a ruler, and save/load game states for seamless gameplay.
 
+See the Roadmap section at the end of this document for a list of planned features.
+
 ## Features
 
 - **_Custom Boards_**: Load any image as your game board.
@@ -82,8 +84,17 @@ For questions or suggestions, feel free to open an issue on GitHub. Feedback and
 
 ## Roadmap
 
-Add support for pre-built installers in the GitHub Releases section.
-Implement auto-update functionality using electron-updater.
-Add more drawing tools (e.g., shapes, additional colors).
-Support for undo/redo actions.
-Enhance token management with custom labels and rotation.
+- Deployment
+
+  - Add support for pre-built installers in the GitHub Releases section.
+  - Implement auto-update functionality using electron-updater.
+
+- App Features
+
+  - Add more drawing tools (e.g., shapes, additional colors).
+  - Support for undo/redo actions.
+  - Enhance token management with custom labels and rotation.
+
+- Styling / UI / UX
+  - When in ruler, draw and erase modes, replace default cursor on canvas with a custom icon.
+  - Add better support for a range of viewport widths. As of now the app UI is only optimized for larger screens.
