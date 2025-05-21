@@ -35,6 +35,8 @@ function App() {
   const [isErasing, setIsErasing] = useState(false);
   const [eraseDropdown, setEraseDropdown] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   const containerRef = useRef(null);
 
   const handleTokenDrag = (e, tokenId) => {
@@ -74,24 +76,19 @@ function App() {
     const updatedTokens = [...tokens];
     Object.values(tokenGroups).forEach((group) => {
       if (group.length > 1) {
-        // Sort tokens by id for consistent labeling
         group.sort((a, b) => a.id - b.id);
-
-        // Calculate the highest existing label in the group
         const existingLabels = group.map((token) => parseInt(token.label) || 0);
         const validLabels = existingLabels.filter(
           (label) => !isNaN(label) && label > 0
         );
         const maxLabel = validLabels.length > 0 ? Math.max(...validLabels) : 0;
 
-        // Assign sequential labels starting from 1 based on sorted order
         group.forEach((token, index) => {
           const tokenIndex = updatedTokens.findIndex((t) => t.id === token.id);
           const newLabel = (index + 1).toString();
           updatedTokens[tokenIndex] = { ...token, label: newLabel };
         });
       } else {
-        // Single token with this image gets no label
         const token = group[0];
         const tokenIndex = updatedTokens.findIndex((t) => t.id === token.id);
         updatedTokens[tokenIndex] = { ...token, label: "" };
@@ -300,6 +297,105 @@ function App() {
     setShowResetDialog(false);
   };
 
+  const serializeState = () => {
+    const state = {
+      stageSize,
+      boardImage: boardImage ? boardImage.src : null,
+      tokens: tokens.map((token) => ({
+        id: token.id,
+        name: token.name,
+        x: token.x,
+        y: token.y,
+        width: token.width,
+        height: token.height,
+        label: token.label,
+        imageSrc: token.image.src,
+      })),
+      drawLines,
+    };
+    return state;
+  };
+
+  const deserializeState = async (gameState) => {
+    // Restore stageSize
+    setStageSize(gameState.stageSize);
+
+    // Restore boardImage
+    if (gameState.boardImage) {
+      const img = new window.Image();
+      img.src = gameState.boardImage;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+      setBoardImage(img);
+    } else {
+      setBoardImage(null);
+    }
+
+    // Restore tokens
+    const loadedTokens = await Promise.all(
+      gameState.tokens.map(async (token) => {
+        const img = new window.Image();
+        img.src = token.imageSrc;
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+        return {
+          id: token.id,
+          name: token.name,
+          x: token.x,
+          y: token.y,
+          width: token.width,
+          height: token.height,
+          label: token.label,
+          image: img,
+        };
+      })
+    );
+    setTokens(loadedTokens);
+
+    // Restore drawLines
+    setDrawLines(gameState.drawLines);
+  };
+
+  const handleSaveGame = async () => {
+    try {
+      const state = serializeState();
+      const result = await window.electronAPI.saveGame(state);
+      if (!result.success && result.error !== "Save canceled") {
+        setErrorMessage(`Failed to save game: ${result.error}`);
+      }
+    } catch (err) {
+      setErrorMessage(`Error saving game: ${err.message}`);
+    }
+  };
+
+  const handleLoadGame = () => {
+    setShowLoadDialog(true);
+  };
+
+  const confirmLoad = async () => {
+    try {
+      const result = await window.electronAPI.loadGame();
+      if (result.success) {
+        await deserializeState(result.gameState);
+      } else if (result.error !== "Load canceled") {
+        setErrorMessage(`Failed to load game: ${result.error}`);
+      }
+    } catch (err) {
+      setErrorMessage(`Error loading game: ${err.message}`);
+    }
+    setShowLoadDialog(false);
+  };
+
+  const cancelLoad = () => {
+    setShowLoadDialog(false);
+  };
+
+  const clearError = () => {
+    setErrorMessage(null);
+  };
+
   return (
     <div className="app">
       <header className="app-header">
@@ -368,8 +464,8 @@ function App() {
           >
             Choose Tokens
           </button>
-          <button>Save Game</button>
-          <button>Load Game</button>
+          <button onClick={handleSaveGame}>Save Game</button>
+          <button onClick={handleLoadGame}>Load Game</button>
           <button onClick={handleResetBoard}>Reset Board</button>
         </div>
       </header>
@@ -504,7 +600,7 @@ function App() {
             {eraseDropdown && (
               <div className="erase-dropdown">
                 <span onClick={handleClearDrawings} style={{ margin: 0 }}>
-                  Clear
+                  Clear All
                 </span>
               </div>
             )}
@@ -917,6 +1013,28 @@ function App() {
             </p>
             <button onClick={confirmReset}>Yes</button>
             <button onClick={cancelReset}>No</button>
+          </div>
+        </div>
+      )}
+
+      {showLoadDialog && (
+        <div className="dialog-overlay">
+          <div className="dialog">
+            <p>
+              Are you sure you want to load a game? This will overwrite the
+              current board, tokens, and drawings.
+            </p>
+            <button onClick={confirmLoad}>Yes</button>
+            <button onClick={cancelLoad}>No</button>
+          </div>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="dialog-overlay">
+          <div className="dialog">
+            <p>{errorMessage}</p>
+            <button onClick={clearError}>OK</button>
           </div>
         </div>
       )}

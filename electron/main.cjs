@@ -72,24 +72,48 @@ app.whenReady().then(() => {
     return imageDataUrls;
   });
 
-  // (Optional) Keep your get-folder-contents handler if still used
-  ipcMain.handle("get-folder-contents", async (event, folderPath) => {
+  // 🧠 Register IPC handler for saving the game state
+  ipcMain.handle("save-game", async (event, gameState) => {
     try {
-      const fullPath = path.resolve(
-        __dirname,
-        "..",
-        "src",
-        "assets",
-        folderPath
-      );
-      const items = fs.readdirSync(fullPath, { withFileTypes: true });
-      return items.map((item) => ({
-        name: item.name,
-        type: item.isDirectory() ? "folder" : "file",
-      }));
+      const result = await dialog.showSaveDialog({
+        title: "Save Game",
+        defaultPath: "game-save.json",
+        filters: [{ name: "JSON Files", extensions: ["json"] }],
+      });
+
+      if (result.canceled || !result.filePath) {
+        return { success: false, error: "Save canceled" };
+      }
+
+      const filePath = result.filePath;
+      fs.writeFileSync(filePath, JSON.stringify(gameState, null, 2));
+      return { success: true };
     } catch (err) {
-      console.error(err);
-      return [];
+      console.error("Error saving game:", err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // 🧠 Register IPC handler for loading the game state
+  ipcMain.handle("load-game", async () => {
+    try {
+      const result = await dialog.showOpenDialog({
+        title: "Load Game",
+        properties: ["openFile"],
+        filters: [{ name: "JSON Files", extensions: ["json"] }],
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return { success: false, error: "Load canceled" };
+      }
+
+      const filePath = result.filePaths[0];
+      const fileContent = fs.readFileSync(filePath, "utf-8");
+      const gameState = JSON.parse(fileContent);
+      return { success: true, gameState };
+    } catch (err) {
+      console.error("Error loading game:", err);
+      return { success: false, error: err.message };
     }
   });
 

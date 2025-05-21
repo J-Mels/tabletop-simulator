@@ -13,4 +13,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
     const result = await ipcRenderer.invoke("get-folder-contents", folderPath);
     return result;
   },
+  saveGame: async (gameState) => {
+    const result = await ipcRenderer.invoke("save-game", gameState);
+    return result;
+  },
+  loadGame: async () => {
+    const result = await ipcRenderer.invoke("load-game");
+    return result;
+  },
 });
