@@ -4,19 +4,19 @@ A lightweight, desktop-based tabletop simulator built with Electron and React, d
 
 ## Features
 
-**Custom Boards**: Load any image as your game board.
+**_Custom Boards_**: Load any image as your game board.
 
-**Token Management**: Add, move, resize, duplicate, and delete tokens with ease. Tokens automatically receive labels when multiple instances of the same image are added.
+**_Token Management_**: Add, move, resize, duplicate, and delete tokens with ease. Tokens automatically receive labels when multiple instances of the same image are added.
 
-**Drawing Tools**: Draw on the board with multiple colors and erase as needed.
+**_Drawing Tools_**: Draw on the board with multiple colors and erase as needed.
 
-**Ruler Tool**: Measure distances on the board with a simple drag-and-drop ruler.
+**_Ruler Tool_**: Measure distances on the board with a simple drag-and-drop ruler.
 
-**Save/Load Games**: Save your game state to a JSON file and load it later to resume where you left off.
+**_Save/Load Games_**: Save your game state to a JSON file and load it later to resume where you left off.
 
-**Reset Board**: Clear the board, tokens, and drawings with a single click.
+**_Reset Board_**: Clear the board, tokens, and drawings with a single click.
 
-**Cross-Platform**: Built with Electron, the app can be packaged for Windows, macOS, and Linux.
+**_Cross-Platform_**: Built with Electron, the app can be packaged for Windows, macOS, and Linux.
 
 ## Screenshots
 
@@ -26,31 +26,31 @@ A lightweight, desktop-based tabletop simulator built with Electron and React, d
 
 ### Prerequisites
 
-Node.js (version 16 or higher)
+Node.js (version 22 or higher)
 
 npm (comes with Node.js)
 
 ### Steps
 
-**Clone the repository**: git clone https://github.com/your-username/tabletop-simulator.git
+**_Clone the repository_**: git clone https://github.com/J-Mels/tabletop-simulator.git
 cd tabletop-simulator
 
-**Install dependencies**: npm install
+**_Install dependencies_**: npm install
 
-**Run the app in development mode**: npm run dev
+**_Run the app in development mode_**: npm run dev
 
-**Packaged Version (Coming Soon)**:
+**_Packaged Version (Coming Soon)_**:
 A pre-built installer for Windows, macOS, and Linux will be available in the Releases section. This will allow you to run the app without setting up a development environment.
 
 ## Usage
 
-**Launch the App**: Start the app using npm run dev (or use the packaged installer once available).
+**_Launch the App_**: Start the app using npm run dev (or use the packaged installer once available).
 
-**Choose a Board**: Click "Choose Board" to load a custom board image (supports .jpg, .png, .gif, .webp, .bmp).
+**_Choose a Board_**: Click "Choose Board" to load a custom board image (supports .jpg, .png, .gif, .webp, .bmp).
 
-**Add Tokens**: Click "Choose Tokens" to add one or more token images. Drag to move, right-click for options like resize, duplicate, or delete.
+**_Add Tokens_**: Click "Choose Tokens" to add one or more token images. Drag to move, right-click for options like resize, duplicate, or delete.
 
-**Use Tools**:
+**_Use Tools_**:
 
 Ruler (📐): Click the ruler icon to measure distances on the board.
 
@@ -58,27 +58,19 @@ Draw (✏️): Select the draw tool, choose a color, and draw on the board.
 
 Erase (🖌️): Use the erase tool to remove drawings or clear all drawings.
 
-**Save/Load Game**: Use the "Save Game" button to save your current state to a .json file, and "Load Game" to restore a previous state.
+**_Save/Load Game_**: Use the "Save Game" button to save your current state to a .json file, and "Load Game" to restore a previous state.
 
-**Reset Board**: Click "Reset Board" to clear everything and start fresh.
+**_Reset Board_**: Click "Reset Board" to clear everything and start fresh.
 
 ## Project Structure
 
-**main.cjs**: The Electron main process script, handling window creation and file system interactions.
+**_main.cjs_**: The Electron main process script, handling window creation and file system interactions.
 
-**preload.js**: Exposes safe APIs to the renderer process for file operations.
+**_preload.js_**: Exposes safe APIs to the renderer process for file operations.
 
-**src/App.jsx**: The main React component, containing the app's logic and UI.
+**_src/App.jsx_**: The main React component, containing the app's logic and UI.
 
-**src/App.css**: Styles for the app.
-
-Roadmap
-
-Add support for pre-built installers in the GitHub Releases section.
-Implement auto-update functionality using electron-updater.
-Add more drawing tools (e.g., shapes, additional colors).
-Support for undo/redo actions.
-Enhance token management with custom labels and rotation.
+**_src/App.css_**: Styles for the app.
 
 ## License
 
@@ -86,4 +78,12 @@ This project is licensed under the MIT License.
 
 ## Contact
 
-For questions or suggestions, feel free to open an issue on GitHub. Feedback and constructive criticism would be much appreciated!
+For questions or suggestions, feel free to open an issue on GitHub. Feedback and constructive criticism are much appreciated!
+
+## Roadmap
+
+Add support for pre-built installers in the GitHub Releases section.
+Implement auto-update functionality using electron-updater.
+Add more drawing tools (e.g., shapes, additional colors).
+Support for undo/redo actions.
+Enhance token management with custom labels and rotation.
