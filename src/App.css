@@ -148,10 +148,16 @@
   width: 100%;
   position: relative;
   overflow: auto;
+  background: linear-gradient(
+    225deg,
+    rgb(110, 89, 61) 0%,
+    rgb(70, 54, 37) 100%
+  );
 }
 
 .canvas {
   border: 1px solid black;
+  box-shadow: -10px 10px 30px rgba(44, 36, 24, 0.9);
   display: inline-block;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
