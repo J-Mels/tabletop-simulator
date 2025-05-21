@@ -161,8 +161,13 @@
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   position: relative;
-  /* height: 90%; */
-  /* margin: 100px; */
+}
+
+.canvas::after {
+  position: absolute;
+  right: 0;
+  content: "(Right click a token to see token options)";
+  font-size: 16px;
 }
 
 .dialog-overlay {

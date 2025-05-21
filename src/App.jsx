@@ -63,7 +63,7 @@ function App() {
     });
   };
 
-  const assignTokenLabels = (tokens, newTokens = []) => {
+  const assignTokenLabels = (tokens = []) => {
     const tokenGroups = {};
     tokens.forEach((token) => {
       const imageSrc = token.image.src;
@@ -711,7 +711,7 @@ function App() {
                     y: Math.max(minY, Math.min(pos.y, maxY)),
                   };
                 }}
-                onDragStart={(e) => {
+                onDragStart={() => {
                   if (rulerMode || drawMode || eraseMode) return;
                   bringToFront(token.id);
                   setSelectedTokenId(token.id);
