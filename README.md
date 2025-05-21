@@ -4,19 +4,19 @@ A lightweight, desktop-based tabletop simulator built with Electron and React, d
 
 ## Features
 
-**_Custom Boards_**: Load any image as your game board.
+- **_Custom Boards_**: Load any image as your game board.
 
-**_Token Management_**: Add, move, resize, duplicate, and delete tokens with ease. Tokens automatically receive labels when multiple instances of the same image are added.
+- **_Token Management_**: Add, move, resize, duplicate, and delete tokens with ease. Tokens automatically receive labels when multiple instances of the same image are added.
 
-**_Drawing Tools_**: Draw on the board with multiple colors and erase as needed.
+- **_Drawing Tools_**: Draw on the board with multiple colors and erase as needed.
 
-**_Ruler Tool_**: Measure distances on the board with a simple drag-and-drop ruler.
+- **_Ruler Tool_**: Measure distances on the board with a simple drag-and-drop ruler.
 
-**_Save/Load Games_**: Save your game state to a JSON file and load it later to resume where you left off.
+- **_Save/Load Games_**: Save your game state to a JSON file and load it later to resume where you left off.
 
-**_Reset Board_**: Clear the board, tokens, and drawings with a single click.
+- **_Reset Board_**: Clear the board, tokens, and drawings with a single click.
 
-**_Cross-Platform_**: Built with Electron, the app can be packaged for Windows, macOS, and Linux.
+- **_Cross-Platform_**: Built with Electron, the app can be packaged for Windows, macOS, and Linux.
 
 ## Screenshots
 
@@ -32,35 +32,35 @@ npm (comes with Node.js)
 
 ### Steps
 
-**_Clone the repository_**: git clone https://github.com/J-Mels/tabletop-simulator.git
-cd tabletop-simulator
+- **_Clone the repository_**: git clone https://github.com/J-Mels/tabletop-simulator.git
+  cd tabletop-simulator
 
-**_Install dependencies_**: npm install
+- **_Install dependencies_**: npm install
 
-**_Run the app in development mode_**: npm run dev
+- **_Run the app in development mode_**: npm run dev
 
-**_Packaged Version (Coming Soon)_**:
-A pre-built installer for Windows, macOS, and Linux will be available in the Releases section. This will allow you to run the app without setting up a development environment.
+- **_Packaged Version (Coming Soon)_**:
+  A pre-built installer for Windows, macOS, and Linux will be available in the Releases section. This will allow you to run the app without setting up a development environment.
 
 ## Usage
 
-**_Launch the App_**: Start the app using npm run dev (or use the packaged installer once available).
+- **_Launch the App_**: Start the app using npm run dev (or use the packaged installer once available).
 
-**_Choose a Board_**: Click "Choose Board" to load a custom board image (supports .jpg, .png, .gif, .webp, .bmp).
+- **_Choose a Board_**: Click "Choose Board" to load a custom board image (supports .jpg, .png, .gif, .webp, .bmp).
 
-**_Add Tokens_**: Click "Choose Tokens" to add one or more token images. Drag to move, right-click for options like resize, duplicate, or delete.
+- **_Add Tokens_**: Click "Choose Tokens" to add one or more token images. Drag to move, right-click for options like resize, duplicate, or delete.
 
-**_Use Tools_**:
+- **_Use Tools_**:
 
-Ruler (📐): Click the ruler icon to measure distances on the board.
+  - Ruler (📐): Click the ruler icon to measure distances on the board.
 
-Draw (✏️): Select the draw tool, choose a color, and draw on the board.
+  - Draw (✏️): Select the draw tool, choose a color, and draw on the board.
 
-Erase (🖌️): Use the erase tool to remove drawings or clear all drawings.
+  - Erase (🖌️): Use the erase tool to remove drawings or clear all drawings.
 
-**_Save/Load Game_**: Use the "Save Game" button to save your current state to a .json file, and "Load Game" to restore a previous state.
+- **_Save/Load Game_**: Use the "Save Game" button to save your current state to a .json file, and "Load Game" to restore a previous state.
 
-**_Reset Board_**: Click "Reset Board" to clear everything and start fresh.
+- **_Reset Board_**: Click "Reset Board" to clear everything and start fresh.
 
 ## Project Structure
 
