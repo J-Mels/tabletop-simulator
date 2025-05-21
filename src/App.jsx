@@ -34,6 +34,7 @@ function App() {
   const [eraseMode, setEraseMode] = useState(false);
   const [isErasing, setIsErasing] = useState(false);
   const [eraseDropdown, setEraseDropdown] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const containerRef = useRef(null);
 
   const handleTokenDrag = (e, tokenId) => {
@@ -60,8 +61,7 @@ function App() {
     });
   };
 
-  // const assignTokenLabels = (tokens, newTokens = []) => {0
-  const assignTokenLabels = (tokens = []) => {
+  const assignTokenLabels = (tokens, newTokens = []) => {
     const tokenGroups = {};
     tokens.forEach((token) => {
       const imageSrc = token.image.src;
@@ -284,6 +284,22 @@ function App() {
     setContextMenuTokenSize(null);
   };
 
+  const handleResetBoard = () => {
+    setShowResetDialog(true);
+  };
+
+  const confirmReset = () => {
+    setBoardImage(null);
+    setTokens([]);
+    setDrawLines([]);
+    setStageSize({ width: 800, height: 600 });
+    setShowResetDialog(false);
+  };
+
+  const cancelReset = () => {
+    setShowResetDialog(false);
+  };
+
   return (
     <div className="app">
       <header className="app-header">
@@ -354,7 +370,7 @@ function App() {
           </button>
           <button>Save Game</button>
           <button>Load Game</button>
-          <button>Reset Board</button>
+          <button onClick={handleResetBoard}>Reset Board</button>
         </div>
       </header>
 
@@ -599,7 +615,7 @@ function App() {
                     y: Math.max(minY, Math.min(pos.y, maxY)),
                   };
                 }}
-                onDragStart={() => {
+                onDragStart={(e) => {
                   if (rulerMode || drawMode || eraseMode) return;
                   bringToFront(token.id);
                   setSelectedTokenId(token.id);
@@ -891,6 +907,19 @@ function App() {
           </Layer>
         </Stage>
       </div>
+
+      {showResetDialog && (
+        <div className="dialog-overlay">
+          <div className="dialog">
+            <p>
+              Are you sure you want to reset the board? This will clear all
+              tokens, drawings, and the board image.
+            </p>
+            <button onClick={confirmReset}>Yes</button>
+            <button onClick={cancelReset}>No</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
