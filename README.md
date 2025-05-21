@@ -22,7 +22,7 @@ See the Roadmap section at the end of this document for a list of planned featur
 
 ## Screenshots
 
-(TODO: Add screenshots of the app in action, such as the main interface, a board with tokens, and the drawing/ruler tools.)
+![alt text](image.png)
 
 ## Installation
 
@@ -96,5 +96,10 @@ For questions or suggestions, feel free to open an issue on GitHub. Feedback and
   - Enhance token management with custom labels and rotation.
 
 - Styling / UI / UX
+
   - When in ruler, draw and erase modes, replace default cursor on canvas with a custom icon.
   - Add better support for a range of viewport widths. As of now the app UI is only optimized for larger screens.
+
+- Project Structure
+  - Code needs some major refactoring to adhere to DRY and other clean code practices. (This is priority #1 on this roadmap!)
+  - Address any potential security concerns before releasing a packaged version of the app.
